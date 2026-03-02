@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MATHMAN: ABSOLUTE VORTEX</title>
+    <title>MATHMAN: TRUE SYNC</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root { --p1: #00f7ff; --bg: #000; }
@@ -15,91 +15,84 @@
             display: flex; align-items: center; justify-content: center; perspective: 1200px;
         }
 
-        #vortex-fx {
-            position: fixed; width: 300%; height: 300%; pointer-events: none; opacity: 0;
-            background: repeating-conic-gradient(from 0deg, transparent 0deg 3deg, rgba(0, 247, 255, 0.4) 4deg 5deg);
-            z-index: 9999;
-        }
-        .vortex-active { opacity: 1 !important; animation: vSpin 0.4s linear infinite; }
-        @keyframes vSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
+        /* 3D MENU */
         #menu-ui { z-index: 1000; transition: 0.8s cubic-bezier(0.6, -0.28, 0.7, 0.05); transform-style: preserve-3d; }
         .setup-card {
-            width: 350px; background: rgba(0, 15, 20, 0.95); border: 2px solid var(--p1);
+            width: 340px; background: rgba(0, 10, 15, 0.98); border: 2px solid var(--p1);
             padding: 35px; text-align: center; box-shadow: 0 0 50px rgba(0, 247, 255, 0.2);
             transform: rotateX(15deg);
-        }
-
-        select {
-            width: 100%; background: #000; color: var(--p1); border: 1px solid var(--p1);
-            padding: 12px; margin: 15px 0; font-family: 'Orbitron'; font-size: 0.7rem;
         }
 
         #game-ui { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; transform-style: preserve-3d; }
         .hud { position: absolute; top: 30px; padding: 12px; border: 1px solid var(--p1); font-family: 'Orbitron'; font-size: 0.65rem; background: rgba(0, 247, 255, 0.05); }
 
-        #math-display { font-family: 'Orbitron'; font-size: 4.5rem; color: #fff; text-shadow: 0 0 30px var(--p1); margin-bottom: 15px; }
+        #math-display { font-family: 'Orbitron'; font-size: 5rem; color: #fff; text-shadow: 0 0 30px var(--p1); margin-bottom: 20px; }
 
-        .dice-row { display: flex; gap: 20px; margin-bottom: 40px; transform-style: preserve-3d; }
-        .die { width: 60px; height: 60px; position: relative; transform-style: preserve-3d; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .side { position: absolute; width: 100%; height: 100%; background: #000; border: 1px solid var(--p1); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: inset 0 0 15px var(--p1); backface-visibility: hidden; }
+        /* 3D DICE SYSTEM */
+        .dice-row { display: flex; gap: 30px; margin-bottom: 50px; transform-style: preserve-3d; }
+        .die { width: 70px; height: 70px; position: relative; transform-style: preserve-3d; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .side { position: absolute; width: 100%; height: 100%; background: #000; border: 1px solid var(--p1); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: inset 0 0 20px var(--p1); backface-visibility: hidden; font-family: 'Orbitron'; }
         
-        /* 3D Dice Mapping */
-        .f1 { transform: rotateY(0deg) translateZ(30px); }
-        .f2 { transform: rotateX(-90deg) translateZ(30px); }
-        .f3 { transform: rotateY(90deg) translateZ(30px); }
-        .f4 { transform: rotateY(-90deg) translateZ(30px); }
-        .f5 { transform: rotateX(90deg) translateZ(30px); }
-        .f6 { transform: rotateY(180deg) translateZ(30px); }
+        /* Side Mapping */
+        .f1 { transform: rotateY(0deg) translateZ(35px); }
+        .f2 { transform: rotateX(-90deg) translateZ(35px); }
+        .f3 { transform: rotateY(90deg) translateZ(35px); }
+        .f4 { transform: rotateY(-90deg) translateZ(35px); }
+        .f5 { transform: rotateX(90deg) translateZ(35px); }
+        .f6 { transform: rotateY(180deg) translateZ(35px); }
 
+        /* BUTTONS */
         .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 90%; max-width: 420px; }
         .btn-3d {
             height: 95px; background: #080808; border: 2px solid var(--p1);
             color: var(--p1); font-family: 'Orbitron'; font-size: 2.2rem;
-            box-shadow: 0 8px 0 #007680; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 0 #007680; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
         .btn-3d:active { transform: translateY(6px); box-shadow: 0 2px 0 #007680; background: var(--p1); color: #000; }
 
-        .implode { animation: suckIn 0.8s forwards cubic-bezier(0.6, -0.28, 0.7, 0.05); pointer-events: none; }
-        @keyframes suckIn {
+        /* IMPLOSION EFFECT */
+        .implode { animation: vortexSuck 0.8s forwards cubic-bezier(0.6, -0.28, 0.7, 0.05); pointer-events: none; }
+        @keyframes vortexSuck {
             0% { transform: scale(1) translateZ(0) rotate(0deg); opacity: 1; }
-            100% { transform: scale(0) translateZ(-2000px) rotate(720deg) skew(30deg); opacity: 0; }
+            100% { transform: scale(0) translateZ(-2500px) rotate(1080deg) skew(30deg); opacity: 0; }
         }
     </style>
 </head>
 <body oncontextmenu="return false;">
-
-    <div id="vortex-fx"></div>
 
     <div id="menu-ui">
         <div class="setup-card">
             <h1 style="font-family:'Orbitron'; letter-spacing: 4px; color:#fff;">MATHMAN</h1>
             <p id="op-id" style="font-size: 0.8rem; margin: 15px 0; color: #0f4;">ID: ---</p>
             <div id="rank-box" style="text-align:left; font-size:0.7rem; border-top:1px solid #222; padding:15px 0;"></div>
-            <select id="mode-select">
-                <option value="add">LOGIC: ADDITION (+)</option>
-                <option value="sub">LOGIC: SUBTRACTION (-)</option>
-            </select>
-            <button class="btn-3d" style="width:100%; height:auto; padding:20px; font-size:1rem;" onclick="bootGame()">BOOT SYSTEM</button>
+            <button class="btn-3d" style="width:100%; height:auto; padding:20px; font-size:1rem;" onclick="bootGame()">INITIALIZE SYSTEM</button>
         </div>
     </div>
 
     <main id="game-ui">
         <div class="hud" style="left:20px;" id="hud-user">ID: ---</div>
         <div class="hud" style="right:20px;" id="hud-streak">STREAK: 0</div>
+        
         <div id="game-core" style="text-align:center; transform-style:preserve-3d;">
-            <div id="math-display">00 + 00</div>
+            <div id="math-display">0 + 0</div>
             <div class="dice-row">
-                <div id="d1" class="die"><div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div><div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div></div>
-                <div id="d2" class="die"><div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div><div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div></div>
+                <div id="d1" class="die">
+                    <div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
+                    <div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div>
+                </div>
+                <div id="d2" class="die">
+                    <div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
+                    <div class="side f4">4</div><div class="side f2">2</div><div class="side f6">6</div>
+                </div>
             </div>
         </div>
+
         <div id="btn-container" class="btn-grid"></div>
     </main>
 
     <script>
         const AC = new (window.AudioContext || window.webkitAudioContext)();
-        let state = { user: "", score: 0, target: 0, mode: "add", busy: false };
+        let state = { user: "", score: 0, target: 0, busy: false };
 
         function beep(f, d) {
             const o = AC.createOscillator(); const g = AC.createGain();
@@ -110,7 +103,7 @@
 
         function init() {
             let n = localStorage.getItem('math_id');
-            if(!n) { n = prompt("ENTER OPERATOR ID:") || "GUEST"; localStorage.setItem('math_id', n.toUpperCase()); }
+            if(!n) { n = prompt("OPERATOR ID:") || "GUEST"; localStorage.setItem('math_id', n.toUpperCase()); }
             state.user = n.toUpperCase();
             document.getElementById('op-id').innerText = "ID: " + state.user;
             document.getElementById('hud-user').innerText = "ID: " + state.user;
@@ -119,13 +112,13 @@
 
         function showScores() {
             const s = JSON.parse(localStorage.getItem('math_scores')) || [];
-            let h = '<p style="opacity:0.4; margin-bottom:5px;">TOP OPERATORS</p>';
+            let h = '<p style="opacity:0.4; margin-bottom:5px;">TOP RECORDS</p>';
             s.slice(0,3).forEach((x, i) => h += `<div style="display:flex; justify-content:space-between; color:#0f4;"><span>${i+1}. ${x.n}</span><span>${x.v}</span></div>`);
             document.getElementById('rank-box').innerHTML = h;
         }
 
         function bootGame() {
-            state.mode = document.getElementById('mode-select').value;
+            beep(400, 0.1);
             document.getElementById('menu-ui').classList.add('implode');
             setTimeout(() => {
                 document.getElementById('menu-ui').style.display = 'none';
@@ -136,30 +129,21 @@
 
         function next() {
             state.busy = false;
-            let a = Math.floor(Math.random() * 45) + 5;
-            let b = Math.floor(Math.random() * 45) + 5;
+            let a = Math.floor(Math.random() * 6) + 1;
+            let b = Math.floor(Math.random() * 6) + 1;
+            state.target = a + b;
             
-            if(state.mode === 'add') {
-                state.target = a + b;
-                document.getElementById('math-display').innerText = `${a} + ${b}`;
-            } else {
-                if(a < b) [a, b] = [b, a];
-                state.target = a - b;
-                document.getElementById('math-display').innerText = `${a} - ${b}`;
-            }
-            
+            document.getElementById('math-display').innerText = `${a} + ${b}`;
             document.getElementById('hud-streak').innerText = "STREAK: " + state.score;
             
-            // DICE MATCH LOGIC: Map numbers 1-6 to rotations. 
-            // If number ends in 0, 7, 8, 9, we default to 1-4 for visual variety.
-            const getRot = (val) => {
-                let num = (val % 6) || 1; 
-                const rots = {1:{x:0,y:0}, 2:{x:90,y:0}, 3:{x:0,y:-90}, 4:{x:0,y:90}, 5:{x:-90,y:0}, 6:{x:0,y:180}};
-                return rots[num];
+            const rots = {
+                1: {x:0, y:0},    2: {x:90, y:0},   3: {x:0, y:-90},
+                4: {x:0, y:90},   5: {x:-90, y:0},  6: {x:0, y:180}
             };
 
-            let r1 = getRot(a % 10 || 1);
-            let r2 = getRot(b % 10 || 2);
+            const r1 = rots[a];
+            const r2 = rots[b];
+            
             document.getElementById('d1').style.transform = `rotateX(${r1.x}deg) rotateY(${r1.y}deg)`;
             document.getElementById('d2').style.transform = `rotateX(${r2.x}deg) rotateY(${r2.y}deg)`;
             
@@ -168,7 +152,9 @@
 
         function renderBtns() {
             const c = document.getElementById('btn-container'); c.innerHTML = '';
-            let opts = [state.target, state.target + 5, state.target - 2].sort(() => Math.random() - 0.5);
+            let opts = [state.target, state.target + 1, state.target - 1];
+            opts = [...new Set(opts)].sort(() => Math.random() - 0.5);
+
             opts.forEach(v => {
                 const b = document.createElement('div');
                 b.className = 'btn-3d'; b.innerText = v;
@@ -182,9 +168,9 @@
         }
 
         function triggerDeath() {
-            beep(100, 0.5);
-            document.getElementById('vortex-fx').classList.add('vortex-active');
+            beep(80, 0.5);
             ['hud-user', 'hud-streak', 'game-core', 'btn-container'].forEach(id => document.getElementById(id).classList.add('implode'));
+            
             setTimeout(() => {
                 let s = JSON.parse(localStorage.getItem('math_scores')) || [];
                 let i = s.findIndex(x => x.n === state.user);

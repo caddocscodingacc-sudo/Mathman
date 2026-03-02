@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MATHMAN: TRUE SYNC</title>
+    <title>MATHMAN: QUANTUM COMMAND</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --p1: #00f7ff; --bg: #000; }
+        :root { --p1: #00f7ff; --p2: #ff0055; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: none; }
         
         body, html {
@@ -15,25 +15,45 @@
             display: flex; align-items: center; justify-content: center; perspective: 1200px;
         }
 
-        /* 3D MENU */
-        #menu-ui { z-index: 1000; transition: 0.8s cubic-bezier(0.6, -0.28, 0.7, 0.05); transform-style: preserve-3d; }
+        /* --- 3D MENU --- */
+        #menu-ui { z-index: 1000; transition: 1s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .setup-card {
-            width: 340px; background: rgba(0, 10, 15, 0.98); border: 2px solid var(--p1);
-            padding: 35px; text-align: center; box-shadow: 0 0 50px rgba(0, 247, 255, 0.2);
-            transform: rotateX(15deg);
+            width: 350px; background: rgba(0, 10, 15, 0.95); border: 2px solid var(--p1);
+            padding: 30px; text-align: center; box-shadow: 0 0 50px rgba(0, 247, 255, 0.2);
+            transform: rotateX(15deg) rotateY(-5deg);
+            animation: menuBoot 1.2s ease-out;
+        }
+        @keyframes menuBoot {
+            0% { transform: rotateX(45deg) translateZ(-500px); opacity: 0; }
+            100% { transform: rotateX(15deg) translateZ(0); opacity: 1; }
         }
 
+        /* --- UI ELEMENTS --- */
+        select {
+            width: 100%; background: #000; color: var(--p1); border: 1px solid var(--p1);
+            padding: 12px; margin: 10px 0; font-family: 'Orbitron'; font-size: 0.7rem;
+            text-align: center; appearance: none;
+        }
+
+        .btn-3d {
+            height: 80px; background: #080808; border: 2px solid var(--p1);
+            color: var(--p1); font-family: 'Orbitron'; font-size: 1.8rem;
+            box-shadow: 0 6px 0 #007680; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            margin-bottom: 10px; transition: 0.1s;
+        }
+        .btn-3d:active { transform: translateY(4px); box-shadow: 0 2px 0 #007680; background: var(--p1); color: #000; }
+
+        /* --- GAME ENGINE --- */
         #game-ui { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; transform-style: preserve-3d; }
         .hud { position: absolute; top: 30px; padding: 12px; border: 1px solid var(--p1); font-family: 'Orbitron'; font-size: 0.65rem; background: rgba(0, 247, 255, 0.05); }
 
-        #math-display { font-family: 'Orbitron'; font-size: 5rem; color: #fff; text-shadow: 0 0 30px var(--p1); margin-bottom: 20px; }
+        #math-display { font-family: 'Orbitron'; font-size: 5rem; color: #fff; text-shadow: 0 0 30px var(--p1); margin-bottom: 15px; }
 
-        /* 3D DICE SYSTEM */
-        .dice-row { display: flex; gap: 30px; margin-bottom: 50px; transform-style: preserve-3d; }
+        /* --- 3D DICE --- */
+        .dice-row { display: flex; gap: 30px; margin-bottom: 40px; transform-style: preserve-3d; }
         .die { width: 70px; height: 70px; position: relative; transform-style: preserve-3d; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .side { position: absolute; width: 100%; height: 100%; background: #000; border: 1px solid var(--p1); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: inset 0 0 20px var(--p1); backface-visibility: hidden; font-family: 'Orbitron'; }
         
-        /* Side Mapping */
         .f1 { transform: rotateY(0deg) translateZ(35px); }
         .f2 { transform: rotateX(-90deg) translateZ(35px); }
         .f3 { transform: rotateY(90deg) translateZ(35px); }
@@ -41,31 +61,46 @@
         .f5 { transform: rotateX(90deg) translateZ(35px); }
         .f6 { transform: rotateY(180deg) translateZ(35px); }
 
-        /* BUTTONS */
-        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 90%; max-width: 420px; }
-        .btn-3d {
-            height: 95px; background: #080808; border: 2px solid var(--p1);
-            color: var(--p1); font-family: 'Orbitron'; font-size: 2.2rem;
-            box-shadow: 0 8px 0 #007680; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        /* --- HOW TO PLAY OVERLAY --- */
+        #manual-box {
+            position: fixed; width: 300px; background: rgba(0,0,0,0.95); border: 1px solid var(--p2);
+            padding: 20px; color: var(--p2); font-size: 0.7rem; z-index: 2000;
+            display: none; transform: rotateY(-10deg); box-shadow: 0 0 30px rgba(255,0,85,0.2);
         }
-        .btn-3d:active { transform: translateY(6px); box-shadow: 0 2px 0 #007680; background: var(--p1); color: #000; }
 
-        /* IMPLOSION EFFECT */
         .implode { animation: vortexSuck 0.8s forwards cubic-bezier(0.6, -0.28, 0.7, 0.05); pointer-events: none; }
         @keyframes vortexSuck {
             0% { transform: scale(1) translateZ(0) rotate(0deg); opacity: 1; }
-            100% { transform: scale(0) translateZ(-2500px) rotate(1080deg) skew(30deg); opacity: 0; }
+            100% { transform: scale(0) translateZ(-2500px) rotate(720deg) skew(30deg); opacity: 0; }
         }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
+    <div id="manual-box">
+        <h3 style="font-family:'Orbitron'; margin-bottom:10px;">OPERATIONS MANUAL</h3>
+        <p>1. Analyze the Quantum Equation.</p>
+        <p>2. Verify Dice Faces match the numbers.</p>
+        <p>3. Select the correct result node below.</p>
+        <p>4. Error leads to immediate System Implosion.</p>
+        <button class="btn-3d" style="width:100%; height:40px; font-size:0.8rem; margin-top:15px; border-color:var(--p2); color:var(--p2);" onclick="toggleManual()">CLOSE</button>
+    </div>
+
     <div id="menu-ui">
         <div class="setup-card">
             <h1 style="font-family:'Orbitron'; letter-spacing: 4px; color:#fff;">MATHMAN</h1>
-            <p id="op-id" style="font-size: 0.8rem; margin: 15px 0; color: #0f4;">ID: ---</p>
-            <div id="rank-box" style="text-align:left; font-size:0.7rem; border-top:1px solid #222; padding:15px 0;"></div>
-            <button class="btn-3d" style="width:100%; height:auto; padding:20px; font-size:1rem;" onclick="bootGame()">INITIALIZE SYSTEM</button>
+            <p id="op-id" style="font-size: 0.8rem; margin: 10px 0; color: #0f4;">ID: ---</p>
+            
+            <select id="mode-select">
+                <option value="add">LOGIC: ADDITION (+)</option>
+                <option value="sub">LOGIC: SUBTRACTION (-)</option>
+                <option value="mul">LOGIC: MULTIPLICATION (×)</option>
+            </select>
+
+            <button class="btn-3d" style="width:100%; height:60px; font-size:1.1rem;" onclick="bootGame()">INITIALIZE</button>
+            <button class="btn-3d" style="width:100%; height:40px; font-size:0.7rem; border-color:#555; color:#888;" onclick="toggleManual()">HOW TO PLAY</button>
+            
+            <div id="rank-box" style="text-align:left; font-size:0.6rem; border-top:1px solid #222; padding-top:10px;"></div>
         </div>
     </div>
 
@@ -82,17 +117,17 @@
                 </div>
                 <div id="d2" class="die">
                     <div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
-                    <div class="side f4">4</div><div class="side f2">2</div><div class="side f6">6</div>
+                    <div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div>
                 </div>
             </div>
         </div>
 
-        <div id="btn-container" class="btn-grid"></div>
+        <div id="btn-container" style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; width:90%; max-width:420px;"></div>
     </main>
 
     <script>
         const AC = new (window.AudioContext || window.webkitAudioContext)();
-        let state = { user: "", score: 0, target: 0, busy: false };
+        let state = { user: "", score: 0, target: 0, mode: "add", busy: false };
 
         function beep(f, d) {
             const o = AC.createOscillator(); const g = AC.createGain();
@@ -110,15 +145,21 @@
             showScores();
         }
 
+        function toggleManual() {
+            const box = document.getElementById('manual-box');
+            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+        }
+
         function showScores() {
             const s = JSON.parse(localStorage.getItem('math_scores')) || [];
-            let h = '<p style="opacity:0.4; margin-bottom:5px;">TOP RECORDS</p>';
+            let h = '<p style="opacity:0.4; margin-bottom:5px;">RECORDS</p>';
             s.slice(0,3).forEach((x, i) => h += `<div style="display:flex; justify-content:space-between; color:#0f4;"><span>${i+1}. ${x.n}</span><span>${x.v}</span></div>`);
             document.getElementById('rank-box').innerHTML = h;
         }
 
         function bootGame() {
             beep(400, 0.1);
+            state.mode = document.getElementById('mode-select').value;
             document.getElementById('menu-ui').classList.add('implode');
             setTimeout(() => {
                 document.getElementById('menu-ui').style.display = 'none';
@@ -131,31 +172,29 @@
             state.busy = false;
             let a = Math.floor(Math.random() * 6) + 1;
             let b = Math.floor(Math.random() * 6) + 1;
-            state.target = a + b;
             
-            document.getElementById('math-display').innerText = `${a} + ${b}`;
+            const symbols = {add:'+', sub:'-', mul:'×'};
+            if(state.mode === 'add') state.target = a + b;
+            else if(state.mode === 'sub') { if(a < b) [a,b] = [b,a]; state.target = a - b; }
+            else { state.target = a * b; }
+
+            document.getElementById('math-display').innerText = `${a} ${symbols[state.mode]} ${b}`;
             document.getElementById('hud-streak').innerText = "STREAK: " + state.score;
             
-            const rots = {
-                1: {x:0, y:0},    2: {x:90, y:0},   3: {x:0, y:-90},
-                4: {x:0, y:90},   5: {x:-90, y:0},  6: {x:0, y:180}
-            };
-
-            const r1 = rots[a];
-            const r2 = rots[b];
-            
-            document.getElementById('d1').style.transform = `rotateX(${r1.x}deg) rotateY(${r1.y}deg)`;
-            document.getElementById('d2').style.transform = `rotateX(${r2.x}deg) rotateY(${r2.y}deg)`;
+            const rots = { 1:{x:0,y:0}, 2:{x:90,y:0}, 3:{x:0,y:-90}, 4:{x:0,y:90}, 5:{x:-90,y:0}, 6:{x:0,y:180} };
+            document.getElementById('d1').style.transform = `rotateX(${rots[a].x}deg) rotateY(${rots[a].y}deg)`;
+            document.getElementById('d2').style.transform = `rotateX(${rots[b].x}deg) rotateY(${rots[b].y}deg)`;
             
             renderBtns();
         }
 
         function renderBtns() {
             const c = document.getElementById('btn-container'); c.innerHTML = '';
-            let opts = [state.target, state.target + 1, state.target - 1];
+            let opts = [state.target, state.target + (state.mode==='mul'?a:1), state.target - (state.mode==='mul'?b:1)];
             opts = [...new Set(opts)].sort(() => Math.random() - 0.5);
 
             opts.forEach(v => {
+                if(v < 0) v = state.target + 3;
                 const b = document.createElement('div');
                 b.className = 'btn-3d'; b.innerText = v;
                 b.onpointerdown = () => {
@@ -168,9 +207,8 @@
         }
 
         function triggerDeath() {
-            beep(80, 0.5);
+            beep(100, 0.5);
             ['hud-user', 'hud-streak', 'game-core', 'btn-container'].forEach(id => document.getElementById(id).classList.add('implode'));
-            
             setTimeout(() => {
                 let s = JSON.parse(localStorage.getItem('math_scores')) || [];
                 let i = s.findIndex(x => x.n === state.user);

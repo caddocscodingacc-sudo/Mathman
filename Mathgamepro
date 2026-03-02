@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TITAN: PROFIT 3D FIXED</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p1: #00f7ff; --p2: #ff0055;
+            --active-neon: var(--p1);
+            --bg: #050505;
+            --f-mono: 'Share Tech Mono', monospace;
+            --f-num: 'Orbitron', sans-serif;
+            --die-size: 70px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: manipulation; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--active-neon);
+            font-family: var(--f-mono);
+            height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- PRE-GAME --- */
+        #master-loader {
+            position: fixed; inset: 0; background: #000; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .setup-box {
+            width: 280px; border: 2px solid var(--p1); padding: 25px;
+            background: rgba(0, 247, 255, 0.05); text-align: center;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.2);
+        }
+
+        .titan-select {
+            width: 100%; background: #000; border: 1px solid var(--p1); color: var(--p1);
+            padding: 12px; margin: 10px 0 20px 0; font-family: var(--f-mono); outline: none;
+        }
+
+        .btn-engage {
+            width: 100%; padding: 15px; background: var(--p1); color: #000; font-weight: 900;
+            border: none; cursor: pointer; letter-spacing: 2px; font-family: var(--f-mono);
+        }
+
+        /* --- GAME LAYOUT --- */
+        #titan-engine { 
+            display: none; flex: 1; flex-direction: column; 
+            padding: 10px; justify-content: space-between; 
+        }
+
+        .hud-players { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 60px; }
+        .player-chip {
+            border: 1px solid #333; padding: 5px; font-size: 0.7rem; text-align: center;
+            opacity: 0.4; transition: 0.3s; background: rgba(255,255,255,0.02);
+        }
+        .player-chip.active { opacity: 1; border-color: var(--active-neon); box-shadow: 0 0 15px var(--active-neon); }
+
+        .logic-header {
+            margin: 10px 0; padding: 15px; border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; background: rgba(0,0,0,0.4); z-index: 10;
+        }
+        #math-out { font-size: 1.6rem; color: #fff; font-family: var(--f-num); }
+
+        /* --- 3D STAGE (FIXED INTERFERENCE) --- */
+        .stage {
+            position: relative; flex-grow: 1; min-height: 200px;
+            perspective: 1000px; display: flex; align-items: center; justify-content: center;
+            z-index: 5; pointer-events: none; /* Prevents stage from blocking button clicks */
+        }
+
+        .floor {
+            position: absolute; width: 200%; height: 200%; top: 50%;
+            background: linear-gradient(var(--active-neon) 1px, transparent 1px) 0 0 / 40px 40px,
+                        linear-gradient(90deg, var(--active-neon) 1px, transparent 1px) 0 0 / 40px 40px;
+            transform: rotateX(70deg) translateY(-50%); opacity: 0.15;
+        }
+
+        .dice-pair { display: flex; gap: 50px; transform-style: preserve-3d; }
+
+        .die {
+            width: var(--die-size); height: var(--die-size);
+            position: relative; transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.15, 0.8, 0.15, 1);
+        }
+
+        .side {
+            position: absolute; width: var(--die-size); height: var(--die-size);
+            background: #fff; border: 2px solid #000; display: flex;
+            align-items: center; justify-content: center; font-family: var(--f-num);
+            font-size: 28px; font-weight: 900; color: #000;
+            backface-visibility: hidden;
+        }
+
+        /* 3D Cube Faces - translateZ is 35px (half of 70px) */
+        .f1 { transform: rotateY(0deg) translateZ(35px); }
+        .f6 { transform: rotateY(180deg) translateZ(35px); }
+        .f3 { transform: rotateY(90deg) translateZ(35px); }
+        .f4 { transform: rotateY(-90deg) translateZ(35px); }
+        .f2 { transform: rotateX(90deg) translateZ(35px); }
+        .f5 { transform: rotateX(-90deg) translateZ(35px); }
+
+        /* --- CONTROLS --- */
+        .footer-ui { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; z-index: 100; }
+        
+        .score-box { font-family: var(--f-num); font-size: 3rem; text-align: center; color: #fff; }
+        
+        .control-panel { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; 
+            pointer-events: auto; /* Ensures buttons are clickable */
+        }
+
+        .btn-node {
+            background: #111; border: 2px solid var(--active-neon); color: var(--active-neon);
+            padding: 20px 0; font-size: 1.6rem; font-family: var(--f-mono); 
+            cursor: pointer; font-weight: bold;
+        }
+        .btn-node:active { background: var(--active-neon); color: #000; }
+
+        /* --- FX --- */
+        .glitch-body { animation: shake 0.2s linear infinite; filter: hue-rotate(90deg) invert(0.2); }
+        @keyframes shake { 0% { transform: translate(0); } 25% { transform: translate(-4px, 2px); } 75% { transform: translate(4px, -2px); } }
+    </style>
+</head>
+<body>
+
+    <div id="master-loader">
+        <div class="setup-box">
+            <h1 style="margin-bottom:20px; font-family:var(--f-num); letter-spacing: 3px;">TITAN.OS</h1>
+            <label style="font-size: 0.7rem; letter-spacing: 2px;">ACTIVE CORES</label>
+            <select id="p-count" class="titan-select">
+                <option value="1">1 PLAYER</option><option value="2">2 PLAYERS</option>
+            </select>
+            <label style="font-size: 0.7rem; letter-spacing: 2px;">LOGIC SECTOR</label>
+            <select id="l-mode" class="titan-select">
+                <option value="add">ADDITION (+)</option>
+                <option value="mult">MULTIPLICATION (×)</option>
+            </select>
+            <button class="btn-engage" onclick="Game.init()">INITIALIZE</button>
+        </div>
+    </div>
+
+    <main id="titan-engine">
+        <div id="hud-list" class="hud-players"></div>
+        
+        <div class="logic-header">
+            <div id="math-out">STABILIZING...</div>
+        </div>
+
+        <div class="stage">
+            <div class="floor"></div>
+            <div class="dice-pair">
+                <div id="die1" class="die">
+                    <div class="side f1">1</div><div class="side f6">6</div>
+                    <div class="side f3">3</div><div class="side f4">4</div>
+                    <div class="side f2">2</div><div class="side f5">5</div>
+                </div>
+                <div id="die2" class="die">
+                    <div class="side f1">1</div><div class="side f6">6</div>
+                    <div class="side f3">3</div><div class="side f4">4</div>
+                    <div class="side f2">2</div><div class="side f5">5</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-ui">
+            <div class="score-box" id="score-val">00</div>
+            <div id="node-box" class="control-panel"></div>
+        </div>
+    </main>
+
+    <script>
+        const Game = (() => {
+            const state = {
+                pCount: 1, turn: 0, scores: [0, 0], 
+                mode: 'add', v1: 1, v2: 1, target: 0, busy: false
+            };
+
+            const COLORS = ['#00f7ff', '#ff0055'];
+            const FACE_MAP = {
+                1: [0, 0], 6: [0, 180], 3: [0, -90], 
+                4: [0, 90], 2: [-90, 0], 5: [90, 0]
+            };
+
+            const init = () => {
+                state.pCount = parseInt(document.getElementById('p-count').value);
+                state.mode = document.getElementById('l-mode').value;
+                document.getElementById('master-loader').style.display = 'none';
+                document.getElementById('titan-engine').style.display = 'flex';
+                buildHUD();
+                nextRound();
+            };
+
+            const buildHUD = () => {
+                const container = document.getElementById('hud-list');
+                container.innerHTML = '';
+                for(let i=0; i<state.pCount; i++) {
+                    const chip = document.createElement('div');
+                    chip.className = 'player-chip';
+                    chip.id = `p${i}`;
+                    chip.innerHTML = `CORE ${i+1}<br>SC: 0`;
+                    container.appendChild(chip);
+                }
+            };
+
+            const nextRound = () => {
+                state.v1 = Math.floor(Math.random() * 6) + 1;
+                state.v2 = Math.floor(Math.random() * 6) + 1;
+                
+                const display = document.getElementById('math-out');
+                if(state.mode === 'add') {
+                    state.target = state.v1 + state.v2;
+                    display.textContent = `${state.v1} + ${state.v2} = ?`;
+                } else {
+                    state.target = state.v1 * state.v2;
+                    display.textContent = `${state.v1} × ${state.v2} = ?`;
+                }
+                
+                updateUI();
+                renderButtons();
+            };
+
+            const updateUI = () => {
+                const color = COLORS[state.turn];
+                document.documentElement.style.setProperty('--active-neon', color);
+                document.getElementById('score-val').textContent = state.scores[state.turn].toString().padStart(2, '0');
+                
+                for(let i=0; i<state.pCount; i++) {
+                    const el = document.getElementById(`p${i}`);
+                    el.classList.toggle('active', i === state.turn);
+                    el.innerHTML = `CORE ${i+1}<br>SC: ${state.scores[i]}`;
+                }
+            };
+
+            const renderButtons = () => {
+                const box = document.getElementById('node-box');
+                box.innerHTML = '';
+                let choices = [state.target];
+                while(choices.length < 3) {
+                    let fake = state.target + (Math.floor(Math.random() * 7) - 3);
+                    if(fake > 0 && !choices.includes(fake)) choices.push(fake);
+                }
+                choices.sort(() => Math.random() - 0.5).forEach(val => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-node';
+                    btn.textContent = val;
+                    btn.onclick = (e) => { e.preventDefault(); handleInput(val); };
+                    box.appendChild(btn);
+                });
+            };
+
+            const handleInput = (val) => {
+                if(state.busy) return;
+                
+                if(val === state.target) {
+                    rollDice();
+                } else {
+                    state.busy = true;
+                    document.body.classList.add('glitch-body');
+                    setTimeout(() => {
+                        document.body.classList.remove('glitch-body');
+                        state.busy = false;
+                        state.turn = (state.turn + 1) % state.pCount;
+                        nextRound();
+                    }, 600);
+                }
+            };
+
+            const rollDice = () => {
+                state.busy = true;
+                const d1 = document.getElementById('die1');
+                const d2 = document.getElementById('die2');
+
+                const r1 = FACE_MAP[state.v1];
+                const r2 = FACE_MAP[state.v2];
+
+                // Execute spin and land on correct face
+                d1.style.transform = `rotateX(${r1[0] + 720}deg) rotateY(${r1[1] + 1080}deg)`;
+                d2.style.transform = `rotateX(${r2[0] - 720}deg) rotateY(${r2[1] - 1080}deg)`;
+
+                setTimeout(() => {
+                    state.scores[state.turn]++;
+                    state.turn = (state.turn + 1) % state.pCount;
+                    state.busy = false;
+                    
+                    setTimeout(() => {
+                        d1.style.transition = 'none'; d2.style.transition = 'none';
+                        d1.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                        d2.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                        nextRound();
+                        setTimeout(() => {
+                            d1.style.transition = 'transform 1.2s cubic-bezier(0.15, 0.8, 0.15, 1)';
+                            d2.style.transition = 'transform 1.2s cubic-bezier(0.15, 0.8, 0.15, 1)';
+                        }, 50);
+                    }, 400);
+                }, 1300);
+            };
+
+            return { init };
+        })();
+    </script>
+</body>
+</html>

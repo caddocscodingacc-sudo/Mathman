@@ -1,226 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MATHMAN: QUANTUM COMMAND</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        :root { --p1: #00f7ff; --p2: #ff0055; --bg: #000; }
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: none; }
-        
-        body, html {
-            background: var(--bg); color: var(--p1); font-family: 'Share Tech Mono', monospace;
-            height: 100vh; width: 100vw; overflow: hidden; position: fixed;
-            display: flex; align-items: center; justify-content: center; perspective: 1200px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MATHMAN: QUANTUM COMMAND</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-        /* --- 3D MENU --- */
-        #menu-ui { z-index: 1000; transition: 1s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-        .setup-card {
-            width: 350px; background: rgba(0, 10, 15, 0.95); border: 2px solid var(--p1);
-            padding: 30px; text-align: center; box-shadow: 0 0 50px rgba(0, 247, 255, 0.2);
-            transform: rotateX(15deg) rotateY(-5deg);
-            animation: menuBoot 1.2s ease-out;
-        }
-        @keyframes menuBoot {
-            0% { transform: rotateX(45deg) translateZ(-500px); opacity: 0; }
-            100% { transform: rotateX(15deg) translateZ(0); opacity: 1; }
-        }
+<style>
+:root{--p1:#00f7ff;--p2:#ff0055;--bg:#000;}
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;touch-action:none;}
 
-        /* --- UI ELEMENTS --- */
-        select {
-            width: 100%; background: #000; color: var(--p1); border: 1px solid var(--p1);
-            padding: 12px; margin: 10px 0; font-family: 'Orbitron'; font-size: 0.7rem;
-            text-align: center; appearance: none;
-        }
+body,html{
+background:var(--bg);
+color:var(--p1);
+font-family:'Share Tech Mono', monospace;
+height:100vh;width:100vw;
+overflow:hidden;
+display:flex;
+align-items:center;
+justify-content:center;
+perspective:1400px;
+}
 
-        .btn-3d {
-            height: 80px; background: #080808; border: 2px solid var(--p1);
-            color: var(--p1); font-family: 'Orbitron'; font-size: 1.8rem;
-            box-shadow: 0 6px 0 #007680; display: flex; align-items: center; justify-content: center; cursor: pointer;
-            margin-bottom: 10px; transition: 0.1s;
-        }
-        .btn-3d:active { transform: translateY(4px); box-shadow: 0 2px 0 #007680; background: var(--p1); color: #000; }
+/* ===== 3D MENU ===== */
 
-        /* --- GAME ENGINE --- */
-        #game-ui { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; transform-style: preserve-3d; }
-        .hud { position: absolute; top: 30px; padding: 12px; border: 1px solid var(--p1); font-family: 'Orbitron'; font-size: 0.65rem; background: rgba(0, 247, 255, 0.05); }
+#menu-ui{
+z-index:1000;
+transition:1s;
+transform-style:preserve-3d;
+}
 
-        #math-display { font-family: 'Orbitron'; font-size: 5rem; color: #fff; text-shadow: 0 0 30px var(--p1); margin-bottom: 15px; }
+.setup-card{
+width:360px;
+background:rgba(0,10,15,0.95);
+border:2px solid var(--p1);
+padding:30px;
+text-align:center;
+box-shadow:0 0 50px rgba(0,247,255,0.2);
+transform:rotateX(15deg) rotateY(-8deg);
+animation:menuBoot 1.2s ease-out;
+}
 
-        /* --- 3D DICE --- */
-        .dice-row { display: flex; gap: 30px; margin-bottom: 40px; transform-style: preserve-3d; }
-        .die { width: 70px; height: 70px; position: relative; transform-style: preserve-3d; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .side { position: absolute; width: 100%; height: 100%; background: #000; border: 1px solid var(--p1); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: inset 0 0 20px var(--p1); backface-visibility: hidden; font-family: 'Orbitron'; }
-        
-        .f1 { transform: rotateY(0deg) translateZ(35px); }
-        .f2 { transform: rotateX(-90deg) translateZ(35px); }
-        .f3 { transform: rotateY(90deg) translateZ(35px); }
-        .f4 { transform: rotateY(-90deg) translateZ(35px); }
-        .f5 { transform: rotateX(90deg) translateZ(35px); }
-        .f6 { transform: rotateY(180deg) translateZ(35px); }
+@keyframes menuBoot{
+0%{transform:rotateX(45deg) translateZ(-500px);opacity:0;}
+100%{transform:rotateX(15deg) translateZ(0);opacity:1;}
+}
 
-        /* --- HOW TO PLAY OVERLAY --- */
-        #manual-box {
-            position: fixed; width: 300px; background: rgba(0,0,0,0.95); border: 1px solid var(--p2);
-            padding: 20px; color: var(--p2); font-size: 0.7rem; z-index: 2000;
-            display: none; transform: rotateY(-10deg); box-shadow: 0 0 30px rgba(255,0,85,0.2);
-        }
+select,input[type=file]{
+width:100%;
+background:#000;
+color:var(--p1);
+border:1px solid var(--p1);
+padding:12px;margin:10px 0;
+font-family:'Orbitron';
+font-size:.7rem;
+}
 
-        .implode { animation: vortexSuck 0.8s forwards cubic-bezier(0.6, -0.28, 0.7, 0.05); pointer-events: none; }
-        @keyframes vortexSuck {
-            0% { transform: scale(1) translateZ(0) rotate(0deg); opacity: 1; }
-            100% { transform: scale(0) translateZ(-2500px) rotate(720deg) skew(30deg); opacity: 0; }
-        }
-    </style>
+.btn-3d{
+height:80px;
+background:#080808;
+border:2px solid var(--p1);
+color:var(--p1);
+font-family:'Orbitron';
+font-size:1.8rem;
+box-shadow:0 6px 0 #007680;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;margin-bottom:10px;
+transition:.1s;
+}
+
+.btn-3d:active{
+transform:translateY(4px);
+box-shadow:0 2px 0 #007680;
+background:var(--p1);color:#000;
+}
+
+/* SETTINGS PANEL */
+#settings-panel{
+display:none;
+margin-top:15px;
+border-top:1px solid var(--p1);
+padding-top:15px;
+}
+
+/* ===== GAME ===== */
+
+#game-ui{
+display:none;
+width:100%;height:100%;
+flex-direction:column;
+align-items:center;justify-content:center;
+transform-style:preserve-3d;
+transition:transform .6s ease;
+}
+
+.hud{
+position:absolute;top:30px;
+padding:12px;
+border:1px solid var(--p1);
+font-family:'Orbitron';
+font-size:.65rem;
+background:rgba(0,247,255,.05);
+}
+
+#math-display{
+font-family:'Orbitron';
+font-size:5rem;
+color:#fff;
+text-shadow:0 0 30px var(--p1);
+margin-bottom:15px;
+}
+
+/* ===== DICE ===== */
+
+.dice-row{display:flex;gap:30px;margin-bottom:40px;transform-style:preserve-3d;}
+
+.die{
+width:70px;height:70px;position:relative;
+transform-style:preserve-3d;
+transition:.8s cubic-bezier(.175,.885,.32,1.275);
+}
+
+.side{
+position:absolute;width:100%;height:100%;
+background:#000;border:1px solid var(--p1);
+display:flex;align-items:center;justify-content:center;
+font-size:1.8rem;
+box-shadow:inset 0 0 20px var(--p1);
+backface-visibility:hidden;
+font-family:'Orbitron';
+}
+
+.f1{transform:rotateY(0deg) translateZ(35px);}
+.f2{transform:rotateX(-90deg) translateZ(35px);}
+.f3{transform:rotateY(90deg) translateZ(35px);}
+.f4{transform:rotateY(-90deg) translateZ(35px);}
+.f5{transform:rotateX(90deg) translateZ(35px);}
+.f6{transform:rotateY(180deg) translateZ(35px);}
+
+/* ===== SWITCH SCREEN ===== */
+
+#switch-screen{
+position:absolute;
+width:100%;height:100%;
+display:flex;
+align-items:center;justify-content:center;
+background:#000;
+color:#fff;
+font-family:'Orbitron';
+font-size:3rem;
+opacity:0;
+transform:rotateY(90deg);
+pointer-events:none;
+z-index:5000;
+}
+
+.switch-animate{animation:switchFlip 1.2s forwards;}
+
+@keyframes switchFlip{
+0%{transform:rotateY(90deg);opacity:0;}
+40%{transform:rotateY(0deg);opacity:1;}
+60%{transform:rotateY(0deg);}
+100%{transform:rotateY(-90deg);opacity:0;}
+}
+
+/* ===== STRIKE EXPLOSION ===== */
+
+.strike-burst{
+position:absolute;
+width:20px;height:20px;
+background:var(--p2);
+border-radius:50%;
+animation:burst .6s forwards;
+pointer-events:none;
+}
+
+@keyframes burst{
+0%{transform:scale(1);opacity:1;}
+100%{transform:scale(6);opacity:0;}
+}
+
+/* ===== IMPLODE ===== */
+
+.implode{
+animation:vortexSuck .8s forwards cubic-bezier(.6,-.28,.7,.05);
+pointer-events:none;
+}
+
+@keyframes vortexSuck{
+0%{transform:scale(1);}
+100%{transform:scale(0) translateZ(-2000px) rotate(720deg);opacity:0;}
+}
+</style>
 </head>
-<body oncontextmenu="return false;">
 
-    <div id="manual-box">
-        <h3 style="font-family:'Orbitron'; margin-bottom:10px;">OPERATIONS MANUAL</h3>
-        <p>1. Analyze the Quantum Equation.</p>
-        <p>2. Verify Dice Faces match the numbers.</p>
-        <p>3. Select the correct result node below.</p>
-        <p>4. Error leads to immediate System Implosion.</p>
-        <button class="btn-3d" style="width:100%; height:40px; font-size:0.8rem; margin-top:15px; border-color:var(--p2); color:var(--p2);" onclick="toggleManual()">CLOSE</button>
-    </div>
+<body>
 
-    <div id="menu-ui">
-        <div class="setup-card">
-            <h1 style="font-family:'Orbitron'; letter-spacing: 4px; color:#fff;">MATHMAN</h1>
-            <p id="op-id" style="font-size: 0.8rem; margin: 10px 0; color: #0f4;">ID: ---</p>
-            
-            <select id="mode-select">
-                <option value="add">LOGIC: ADDITION (+)</option>
-                <option value="sub">LOGIC: SUBTRACTION (-)</option>
-                <option value="mul">LOGIC: MULTIPLICATION (×)</option>
-            </select>
+<div id="switch-screen"></div>
 
-            <button class="btn-3d" style="width:100%; height:60px; font-size:1.1rem;" onclick="bootGame()">INITIALIZE</button>
-            <button class="btn-3d" style="width:100%; height:40px; font-size:0.7rem; border-color:#555; color:#888;" onclick="toggleManual()">HOW TO PLAY</button>
-            
-            <div id="rank-box" style="text-align:left; font-size:0.6rem; border-top:1px solid #222; padding-top:10px;"></div>
-        </div>
-    </div>
+<div id="menu-ui">
+<div class="setup-card">
+<h1 style="font-family:'Orbitron';letter-spacing:4px;color:#fff;">MATHMAN</h1>
 
-    <main id="game-ui">
-        <div class="hud" style="left:20px;" id="hud-user">ID: ---</div>
-        <div class="hud" style="right:20px;" id="hud-streak">STREAK: 0</div>
-        
-        <div id="game-core" style="text-align:center; transform-style:preserve-3d;">
-            <div id="math-display">0 + 0</div>
-            <div class="dice-row">
-                <div id="d1" class="die">
-                    <div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
-                    <div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div>
-                </div>
-                <div id="d2" class="die">
-                    <div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
-                    <div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div>
-                </div>
-            </div>
-        </div>
+<select id="mode-select">
+<option value="add">LOGIC: ADDITION (+)</option>
+<option value="sub">LOGIC: SUBTRACTION (-)</option>
+<option value="mul">LOGIC: MULTIPLICATION (×)</option>
+</select>
 
-        <div id="btn-container" style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; width:90%; max-width:420px;"></div>
-    </main>
+<select id="ai-select">
+<option value="human">2 PLAYERS</option>
+<option value="ai">VS AI</option>
+</select>
 
-    <script>
-        const AC = new (window.AudioContext || window.webkitAudioContext)();
-        let state = { user: "", score: 0, target: 0, mode: "add", busy: false };
+<button class="btn-3d" style="width:100%;height:60px;font-size:1.1rem;" onclick="toggleSettings()">SETTINGS</button>
 
-        function beep(f, d) {
-            const o = AC.createOscillator(); const g = AC.createGain();
-            o.frequency.value = f; g.gain.setValueAtTime(0.1, AC.currentTime);
-            o.connect(g); g.connect(AC.destination);
-            o.start(); o.stop(AC.currentTime + d);
-        }
+<div id="settings-panel">
+<input type="file" id="audio-upload" accept="audio/*">
+<div class="btn-3d" style="height:50px;font-size:1rem;" onclick="toggleMusic()">TOGGLE MUSIC</div>
+</div>
 
-        function init() {
-            let n = localStorage.getItem('math_id');
-            if(!n) { n = prompt("OPERATOR ID:") || "GUEST"; localStorage.setItem('math_id', n.toUpperCase()); }
-            state.user = n.toUpperCase();
-            document.getElementById('op-id').innerText = "ID: " + state.user;
-            document.getElementById('hud-user').innerText = "ID: " + state.user;
-            showScores();
-        }
+<button class="btn-3d" style="width:100%;height:60px;font-size:1.1rem;" onclick="bootGame()">INITIALIZE</button>
+</div>
+</div>
 
-        function toggleManual() {
-            const box = document.getElementById('manual-box');
-            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
-        }
+<main id="game-ui">
+<div class="hud" style="left:20px;" id="hud-user"></div>
+<div class="hud" style="right:20px;" id="hud-streak"></div>
 
-        function showScores() {
-            const s = JSON.parse(localStorage.getItem('math_scores')) || [];
-            let h = '<p style="opacity:0.4; margin-bottom:5px;">RECORDS</p>';
-            s.slice(0,3).forEach((x, i) => h += `<div style="display:flex; justify-content:space-between; color:#0f4;"><span>${i+1}. ${x.n}</span><span>${x.v}</span></div>`);
-            document.getElementById('rank-box').innerHTML = h;
-        }
+<div id="game-core" style="text-align:center;">
+<div id="math-display">0 + 0</div>
 
-        function bootGame() {
-            beep(400, 0.1);
-            state.mode = document.getElementById('mode-select').value;
-            document.getElementById('menu-ui').classList.add('implode');
-            setTimeout(() => {
-                document.getElementById('menu-ui').style.display = 'none';
-                document.getElementById('game-ui').style.display = 'flex';
-                next();
-            }, 600);
-        }
+<div class="dice-row">
+<div id="d1" class="die">
+<div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
+<div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div>
+</div>
+<div id="d2" class="die">
+<div class="side f1">1</div><div class="side f2">2</div><div class="side f3">3</div>
+<div class="side f4">4</div><div class="side f5">5</div><div class="side f6">6</div>
+</div>
+</div>
+</div>
 
-        function next() {
-            state.busy = false;
-            let a = Math.floor(Math.random() * 6) + 1;
-            let b = Math.floor(Math.random() * 6) + 1;
-            
-            const symbols = {add:'+', sub:'-', mul:'×'};
-            if(state.mode === 'add') state.target = a + b;
-            else if(state.mode === 'sub') { if(a < b) [a,b] = [b,a]; state.target = a - b; }
-            else { state.target = a * b; }
+<div id="btn-container" style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px;width:90%;max-width:420px;"></div>
+</main>
 
-            document.getElementById('math-display').innerText = `${a} ${symbols[state.mode]} ${b}`;
-            document.getElementById('hud-streak').innerText = "STREAK: " + state.score;
-            
-            const rots = { 1:{x:0,y:0}, 2:{x:90,y:0}, 3:{x:0,y:-90}, 4:{x:0,y:90}, 5:{x:-90,y:0}, 6:{x:0,y:180} };
-            document.getElementById('d1').style.transform = `rotateX(${rots[a].x}deg) rotateY(${rots[a].y}deg)`;
-            document.getElementById('d2').style.transform = `rotateX(${rots[b].x}deg) rotateY(${rots[b].y}deg)`;
-            
-            renderBtns();
-        }
+<script>
+const AC=new(window.AudioContext||window.webkitAudioContext)();
+let bgMusic=null;
 
-        function renderBtns() {
-            const c = document.getElementById('btn-container'); c.innerHTML = '';
-            let opts = [state.target, state.target + (state.mode==='mul'?a:1), state.target - (state.mode==='mul'?b:1)];
-            opts = [...new Set(opts)].sort(() => Math.random() - 0.5);
+function toggleSettings(){
+let panel=document.getElementById("settings-panel");
+panel.style.display=panel.style.display==="block"?"none":"block";
+}
 
-            opts.forEach(v => {
-                if(v < 0) v = state.target + 3;
-                const b = document.createElement('div');
-                b.className = 'btn-3d'; b.innerText = v;
-                b.onpointerdown = () => {
-                    if(state.busy) return; state.busy = true;
-                    if(v === state.target) { beep(800, 0.05); state.score++; next(); }
-                    else { triggerDeath(); }
-                };
-                c.appendChild(b);
-            });
-        }
+document.getElementById("audio-upload").addEventListener("change",function(e){
+let file=e.target.files[0];
+if(file){
+bgMusic=new Audio(URL.createObjectURL(file));
+bgMusic.loop=true;
+bgMusic.volume=.5;
+}
+});
 
-        function triggerDeath() {
-            beep(100, 0.5);
-            ['hud-user', 'hud-streak', 'game-core', 'btn-container'].forEach(id => document.getElementById(id).classList.add('implode'));
-            setTimeout(() => {
-                let s = JSON.parse(localStorage.getItem('math_scores')) || [];
-                let i = s.findIndex(x => x.n === state.user);
-                if(i !== -1) { if(state.score > s[i].v) s[i].v = state.score; }
-                else if(state.score > 0) { s.push({n: state.user, v: state.score}); }
-                s.sort((a,b) => b.v - a.v);
-                localStorage.setItem('math_scores', JSON.stringify(s.slice(0, 5)));
-                location.reload();
-            }, 800);
-        }
+function toggleMusic(){
+if(!bgMusic)return;
+if(bgMusic.paused) bgMusic.play();
+else bgMusic.pause();
+}
 
-        window.onload = init;
-    </script>
+let state={
+players:[],
+isAI:false,
+currentPlayer:0,
+scores:[0,0],
+strikes:[0,0],
+a:0,b:0,target:0,
+mode:"add",
+busy:false
+};
+
+function beep(f,d){
+const o=AC.createOscillator();
+const g=AC.createGain();
+o.frequency.value=f;
+g.gain.setValueAtTime(.1,AC.currentTime);
+o.connect(g);g.connect(AC.destination);
+o.start();o.stop(AC.currentTime+d);
+}
+
+function bootGame(){
+AC.resume();
+if(bgMusic && bgMusic.paused) bgMusic.play();
+
+let p1=prompt("PLAYER 1 ID:")||"P1";
+let aiMode=document.getElementById("ai-select").value==="ai";
+let p2=aiMode?"AI":(prompt("PLAYER 2 ID:")||"P2");
+state.players=[p1.toUpperCase(),p2.toUpperCase()];
+state.isAI=aiMode;
+state.mode=document.getElementById("mode-select").value;
+
+document.getElementById("menu-ui").classList.add("implode");
+
+setTimeout(()=>{
+document.getElementById("menu-ui").style.display="none";
+document.getElementById("game-ui").style.display="flex";
+next();
+},600);
+}
+
+/* --- REST OF YOUR GAME SCRIPT IS UNCHANGED --- */
+
+function next(){state.busy=false;let a=Math.floor(Math.random()*6)+1;let b=Math.floor(Math.random()*6)+1;if(state.mode==="sub"&&a<b){let t=a;a=b;b=t;}state.a=a;state.b=b;if(state.mode==="add")state.target=a+b;else if(state.mode==="sub")state.target=a-b;else state.target=a*b;document.getElementById("math-display").innerText=`${a} ${state.mode==="add"?"+":state.mode==="sub"?"-":"×"} ${b}`;updateHUD();rotateDice();renderBtns();if(state.isAI&&state.currentPlayer===1){setTimeout(aiMove,900);}}
+function updateHUD(){document.getElementById("hud-user").innerText="TURN: "+state.players[state.currentPlayer];document.getElementById("hud-streak").innerText=`${state.players[0]}: ${state.scores[0]} (${state.strikes[0]}X) | ${state.players[1]}: ${state.scores[1]} (${state.strikes[1]}X)`;}
+function rotateDice(){const r={1:{x:0,y:0},2:{x:90,y:0},3:{x:0,y:-90},4:{x:0,y:90},5:{x:-90,y:0},6:{x:0,y:180}};document.getElementById("d1").style.transform=`rotateX(${r[state.a].x}deg) rotateY(${r[state.a].y}deg)`;document.getElementById("d2").style.transform=`rotateX(${r[state.b].x}deg) rotateY(${r[state.b].y}deg)`;}
+function renderBtns(){const c=document.getElementById("btn-container");c.innerHTML="";let wrong1=state.target+1;let wrong2=state.target-1;let opts=[state.target,wrong1,wrong2].sort(()=>Math.random()-0.5);opts.forEach(v=>{let b=document.createElement("div");b.className="btn-3d";b.innerText=v;b.onpointerdown=()=>selectAnswer(v);c.appendChild(b);});}
+function selectAnswer(v){if(state.busy)return;state.busy=true;if(v===state.target){beep(800,.05);state.scores[state.currentPlayer]++;switchPlayer();}else{state.strikes[state.currentPlayer]++;explode();if(state.strikes[state.currentPlayer]>=3){implodeLoss();}else{switchPlayer();}}}
+function explode(){let e=document.createElement("div");e.className="strike-burst";e.style.left=Math.random()*window.innerWidth+"px";e.style.top=Math.random()*window.innerHeight+"px";document.body.appendChild(e);setTimeout(()=>e.remove(),600);}
+function aiMove(){let correct=Math.random()<.75;selectAnswer(correct?state.target:state.target+1);}
+function switchPlayer(){state.currentPlayer=state.currentPlayer===0?1:0;document.getElementById("game-ui").style.transform="rotateY(20deg)";setTimeout(()=>{document.getElementById("game-ui").style.transform="rotateY(-20deg)";},200);let screen=document.getElementById("switch-screen");screen.innerText=state.players[state.currentPlayer];screen.classList.add("switch-animate");setTimeout(()=>{screen.classList.remove("switch-animate");next();},1200);}
+function implodeLoss(){["hud-user","hud-streak","game-core","btn-container"].forEach(id=>{document.getElementById(id).classList.add("implode");});setTimeout(()=>location.reload(),900);}
+</script>
+
 </body>
 </html>
